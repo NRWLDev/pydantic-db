@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from pydantic_db import Model, NestedModel
 
 
@@ -30,6 +32,12 @@ class ModelD(NestedModel):
     d: str
     a: ModelA
     b: ModelB | None
+
+
+class ModelE(NestedModel):
+    id: int | float  # union not containing model to trigger test branches
+    e: str
+    d: ModelD  # Nested NestedModel
 
 
 def test_unrelated_models_not_equal():
@@ -73,6 +81,16 @@ class TestModel:
 
 
 class TestNestedModel:
+    @pytest.mark.parametrize(
+        ("model", "expected_fields"),
+        [
+            (ModelD, {"a": ModelA, "b": ModelB}),
+            (ModelE, {"d": ModelD}),
+        ],
+    )
+    def test_model_fields(self, model, expected_fields):
+        assert model._pdb_model_fields() == expected_fields
+
     def test_from_result(self):
         r = {"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": 3, "b__b": "z"}
         model = ModelD.from_result(r)
@@ -93,6 +111,21 @@ class TestNestedModel:
             d="x",
             a=ModelA(id=2, a="y"),
             b=None,
+        )
+
+    def test_multi_layer_nesting(self):
+        r = {"id": 0, "e": "w", "d__id": 1, "d__d": "x", "d__a__id": 2, "d__a__a": "y", "d__b__id": 3, "d__b__b": "z"}
+        model = ModelE.from_result(r)
+
+        assert model == ModelE(
+            id=0,
+            e="w",
+            d=ModelD(
+                id=1,
+                d="x",
+                a=ModelA(id=2, a="y"),
+                b=ModelB(id=3, b="z"),
+            ),
         )
 
     def test_from_results(self):

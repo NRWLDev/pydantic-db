@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import types
 import typing
 
 import pydantic
@@ -38,9 +39,23 @@ class NestedModel(Model):
     _skip_prefix_fields: typing.ClassVar[dict[str, str] | None] = None
 
     @classmethod
+    def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, Model]:
+        ret = {}
+        for k, f in cls.model_fields.items():
+            if issubclass(f.annotation, Model):
+                ret[k] = f.annotation
+            elif type(f.annotation) is types.UnionType:
+                for arg in typing.get_args(f.annotation):
+                    if issubclass(arg, Model):
+                        ret[k] = arg
+                        break
+        return ret
+
+    @classmethod
     def _parse_result(cls: type[typing.Self], result: DictConvertible) -> dict:
         data = super()._parse_result(result)
         skip_prefix_map = cls._skip_prefix_fields or {}
+        model_fields = cls._pdb_model_fields()
         prefixes = {k.split("__")[0] for k in data if "__" in k}
 
         for prefix in prefixes:
@@ -48,8 +63,9 @@ class NestedModel(Model):
             if skip_field and data[f"{prefix}__{skip_field}"] is None:
                 data[prefix] = None
             else:
-                data[prefix] = {
-                    **{k.replace(f"{prefix}__", ""): v for k, v in data.items() if k.startswith(f"{prefix}__")},
-                }
+                # Unions
+                data[prefix] = model_fields[prefix].from_result(
+                    {k.replace(f"{prefix}__", ""): v for k, v in data.items() if k.startswith(f"{prefix}__")},
+                )
 
         return data
