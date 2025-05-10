@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from datetime import UTC, datetime
 
-from pydantic_db import Model
+from pydantic_db import Model, NestedModel
 
 
 class ModelA(Model):
@@ -21,41 +23,87 @@ class ModelC(Model):
     updated: datetime
 
 
+class ModelD(NestedModel):
+    _skip_prefix_fields = {"b": "id"}
+
+    id: int
+    d: str
+    a: ModelA
+    b: ModelB | None
+
+
 def test_unrelated_models_not_equal():
-    a = ModelA(id=1, a="b")
-    b = ModelB(id=1, b="b")
-    assert a != b
+    m1 = ModelA(id=1, a="x")
+    m2 = ModelB(id=1, b="x")
+    assert m1 != m2
 
 
 def test_different_data_models_not_equal():
-    a = ModelA(id=1, a="a")
-    b = ModelA(id=1, a="b")
-    assert a != b
+    m1 = ModelA(id=1, a="y")
+    m2 = ModelA(id=1, a="x")
+    assert m1 != m2
 
 
 def test_equivalent_models_equal():
-    a = ModelA(id=1, a="a")
-    b = ModelA(id=1, a="a")
-    assert a == b
+    m1 = ModelA(id=1, a="y")
+    m2 = ModelA(id=1, a="y")
+    assert m1 == m2
 
 
 def test_equivalent_models_equal_ignored_field():
-    a = ModelC(id=1, c="c", updated=datetime(2025, 1, 1, tzinfo=UTC))
-    b = ModelC(id=1, c="c", updated=datetime(2025, 1, 2, tzinfo=UTC))
-    assert a == b
+    m1 = ModelC(id=1, c="x", updated=datetime(2025, 1, 1, tzinfo=UTC))
+    m2 = ModelC(id=1, c="x", updated=datetime(2025, 1, 2, tzinfo=UTC))
+    assert m1 == m2
 
 
-async def test_from_result():
-    r = {"id": 1, "a": "b"}
-    model = ModelA.from_result(r)
+class TestModel:
+    def test_from_result(self):
+        r = {"id": 1, "a": "x"}
+        model = ModelA.from_result(r)
 
-    assert model == ModelA(id=1, a="b")
+        assert model == ModelA(id=1, a="x")
+
+    def test_from_results(self):
+        results = [{"id": 1, "a": "x"}]
+        models = ModelA.from_results(results)
+
+        assert models == [
+            ModelA(id=1, a="x"),
+        ]
 
 
-async def test_from_results():
-    results = [{"id": 1, "a": "b"}]
-    models = ModelA.from_results(results)
+class TestNestedModel:
+    def test_from_result(self):
+        r = {"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": 3, "b__b": "z"}
+        model = ModelD.from_result(r)
 
-    assert models == [
-        ModelA(id=1, a="b"),
-    ]
+        assert model == ModelD(
+            id=1,
+            d="x",
+            a=ModelA(id=2, a="y"),
+            b=ModelB(id=3, b="z"),
+        )
+
+    def test_from_result_skips_optional(self):
+        r = {"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": None, "b__b": None}
+        model = ModelD.from_result(r)
+
+        assert model == ModelD(
+            id=1,
+            d="x",
+            a=ModelA(id=2, a="y"),
+            b=None,
+        )
+
+    def test_from_results(self):
+        results = [{"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": 3, "b__b": "z"}]
+        models = ModelD.from_results(results)
+
+        assert models == [
+            ModelD(
+                id=1,
+                d="x",
+                a=ModelA(id=2, a="y"),
+                b=ModelB(id=3, b="z"),
+            ),
+        ]
