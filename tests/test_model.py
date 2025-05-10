@@ -4,40 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from pydantic_db import Model, NestedModel
-
-
-class ModelA(Model):
-    id: int
-    a: str
-
-
-class ModelB(Model):
-    id: int
-    b: str
-
-
-class ModelC(Model):
-    _eq_excluded_fields = {"updated"}
-
-    id: int
-    c: str
-    updated: datetime
-
-
-class ModelD(NestedModel):
-    _skip_prefix_fields = {"b": "id"}
-
-    id: int
-    d: str
-    a: ModelA
-    b: ModelB | None
-
-
-class ModelE(NestedModel):
-    id: int | float  # union not containing model to trigger test branches
-    e: str
-    d: ModelD  # Nested NestedModel
+from tests.model import ModelA, ModelB, ModelC, ModelD, ModelE
 
 
 def test_unrelated_models_not_equal():

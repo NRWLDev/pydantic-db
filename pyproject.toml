@@ -130,7 +130,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tasks.py" = ["ANN", "E501", "INP001", "S"]
-"tests/*" = ["ANN", "D", "S105", "S106", "SLF", "DTZ005", "S101", "S608", "TD", "PLR0913", "RUF012"]
+"tests/*" = ["ANN", "D", "S105", "S106", "SLF", "DTZ005", "S101", "S608", "TD", "PLR0913", "RUF012", "TC003"]
 
 [tool.ruff.format]
 line-ending = "lf"
