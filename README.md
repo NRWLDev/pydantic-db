@@ -19,7 +19,7 @@ intended to run as is.
 
 To convert a single result object into a model, use `Model.from_result`.
 
-```
+```python
 import sqlite3
 
 from pydantic_db import Model
@@ -44,7 +44,7 @@ user = User.from_result(r)
 
 To convert a list of result objects into models, use `Model.from_results`.
 
-```
+```python
 import sqlite3
 
 from pydantic_db import Model
@@ -71,7 +71,7 @@ For more complicated queries returning a nested object, models can be nested. To
 parse them automatically prefix query fields with `name__` format prefixes.
 
 Say we have a Vehicle table with a reference to an owner (User).
-```
+```python
 import sqlite3
 
 from pydantic_db import Model
