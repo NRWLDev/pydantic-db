@@ -113,7 +113,7 @@ will nullify that field.
 
 If your nested model contains a differently named primary key or some other
 field that can be relied on to detect that a query has not successfully joined,
-and so the nested model should be None. Override the `_skip_prefix_field` class var.
+and so the nested model should be None. Override the `_skip_prefix_fields` class var.
 
 
 ```python
