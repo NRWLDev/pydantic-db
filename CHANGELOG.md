@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2 (released 2025-05-12)
+
+### Bug fixes
+
+- Drop documentation link from pypi. [[f1627de](https://github.com/NRWLDev/pydantic-db/commit/f1627de934151cdd05000d89b9e79033eb68dbeb)]
+
 ## v0.1.1 (released 2025-05-12)
 
 ### Bug fixes
