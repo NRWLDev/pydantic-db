@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1 (released 2025-05-12)
+
+### Bug fixes
+
+- Add py.typed for type checkers. [[ed12f79](https://github.com/NRWLDev/pydantic-db/commit/ed12f79ff1a92f33e75b080270a566e5363cace1)]
+
 ## v0.1.0 (released 2025-05-12)
 
 ### Features and Improvements
