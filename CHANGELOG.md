@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.3 (released 2025-05-12)
+
+### Bug fixes
+
+- Update type hints to play nicer with mypy. [[3158627](https://github.com/NRWLDev/pydantic-db/commit/31586270ef99a581628c6c8959e3775451cab3c3)]
+
 ## v0.1.2 (released 2025-05-12)
 
 ### Bug fixes
