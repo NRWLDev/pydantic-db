@@ -18,16 +18,17 @@ class Model(pydantic.BaseModel):
     _skip_prefix_fields: typing.ClassVar[dict[str, str] | None] = None
 
     @classmethod
-    def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, Model]:
+    def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, tuple[Model, bool]]:
         ret = {}
         for k, f in cls.model_fields.items():
             if type(f.annotation) is UnionType:
-                for arg in typing.get_args(f.annotation):
+                args = typing.get_args(f.annotation)
+                for arg in args:
                     if isinstance(arg, type) and issubclass(arg, Model):
-                        ret[k] = arg
+                        ret[k] = (arg, type(None) in args)
                         break
             elif isinstance(f.annotation, type) and issubclass(f.annotation, Model):
-                ret[k] = f.annotation
+                ret[k] = (f.annotation, False)
         return ret
 
     def __eq__(self, other: object) -> bool:
@@ -48,13 +49,14 @@ class Model(pydantic.BaseModel):
         skip_prefix_map = cls._skip_prefix_fields or {}
         model_fields = cls._pdb_model_fields()
 
-        for model_prefix in model_fields:
-            skip_field = skip_prefix_map.get(model_prefix)
-            if skip_field and data.get(f"{model_prefix}__{skip_field}") is None:
+        for model_prefix, config_ in model_fields.items():
+            model, optional = config_
+            skip_field = skip_prefix_map.get(model_prefix, "id")
+            if optional and data.get(f"{model_prefix}__{skip_field}") is None:
                 data[model_prefix] = None
             else:
                 # Unions
-                data[model_prefix] = model_fields[model_prefix].from_result(
+                data[model_prefix] = model.from_result(
                     {
                         k.replace(f"{model_prefix}__", ""): v
                         for k, v in data.items()
@@ -89,7 +91,7 @@ class Model(pydantic.BaseModel):
 
         for field, field_data in cls.model_fields.items():
             if field in model_fields:
-                for column, annotation in model_fields[field].as_typed_columns().items():
+                for column, annotation in model_fields[field][0].as_typed_columns().items():
                     columns[(field, *column)] = annotation
 
             elif base_table is None:

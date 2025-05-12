@@ -104,3 +104,28 @@ results = cursor.fetchall()
 
 vehicles = Vehicle.from_results(results)
 ```
+
+### Optional nested models
+
+When a nested model is optional i.e. `user: User | None` the library will check
+if there is an `id` field by default, and if that field is empty (None), it
+will nullify that field.
+
+If your nested model contains a differently named primary key or some other
+field that can be relied on to detect that a query has not successfully joined,
+and so the nested model should be None. Override the `_skip_prefix_field` class var.
+
+
+```python
+class User(Model):
+    primary_key: int
+    name: str
+
+
+class Vehicle(Model):
+    _skip_prefix_field = {"owner": "primary_key"}
+
+    id: int
+    name: str
+    owner: User | None
+```
