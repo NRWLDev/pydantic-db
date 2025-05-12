@@ -31,6 +31,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "eval-type-backport>=0.2.2",
     "pydantic >= 2",
 ]
 

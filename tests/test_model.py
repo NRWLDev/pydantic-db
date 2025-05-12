@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import typing
+from datetime import datetime, timezone
 
 import pytest
 
@@ -26,8 +27,8 @@ def test_equivalent_models_equal():
 
 
 def test_equivalent_models_equal_ignored_field():
-    m1 = ModelC(id=1, c="x", updated=datetime(2025, 1, 1, tzinfo=UTC))
-    m2 = ModelC(id=1, c="x", updated=datetime(2025, 1, 2, tzinfo=UTC))
+    m1 = ModelC(id=1, c="x", updated=datetime(2025, 1, 1, tzinfo=timezone.utc))
+    m2 = ModelC(id=1, c="x", updated=datetime(2025, 1, 2, tzinfo=timezone.utc))
     assert m1 == m2
 
 
@@ -94,7 +95,7 @@ class TestNestedModel:
         columns = ModelE.as_typed_columns()
 
         assert columns == {
-            ("id",): int | float,
+            ("id",): typing.Union[int, float],
             ("e",): str,
             ("d", "id"): int,
             ("d", "d"): str,

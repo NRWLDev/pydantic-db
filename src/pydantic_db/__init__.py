@@ -7,6 +7,11 @@ import pydantic
 
 DictConvertible = typing.Union[typing.Mapping[str, typing.Any], typing.Iterable[tuple[str, typing.Any]]]
 
+try:
+    UnionType = types.UnionType
+except AttributeError:
+    UnionType = typing._UnionGenericAlias  # noqa: SLF001
+
 
 class Model(pydantic.BaseModel):
     _eq_excluded_fields: typing.ClassVar[set[str]] = set()
@@ -16,7 +21,7 @@ class Model(pydantic.BaseModel):
     def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, Model]:
         ret = {}
         for k, f in cls.model_fields.items():
-            if type(f.annotation) is types.UnionType:
+            if type(f.annotation) is UnionType:
                 for arg in typing.get_args(f.annotation):
                     if isinstance(arg, type) and issubclass(arg, Model):
                         ret[k] = arg
