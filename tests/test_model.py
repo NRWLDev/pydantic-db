@@ -32,15 +32,42 @@ def test_equivalent_models_equal_ignored_field():
 
 
 class TestModel:
+    def test_model_fields(self):
+        assert ModelA._pdb_model_fields() == {}
+
+    def test_as_columns(self):
+        columns = ModelA.as_columns()
+
+        assert columns == [("id",), ("a",)]
+
+    def test_as_typed_columns(self):
+        columns = ModelA.as_typed_columns()
+
+        assert columns == {("id",): int, ("a",): str}
+
     def test_from_result(self):
         r = {"id": 1, "a": "x"}
         model = ModelA.from_result(r)
 
         assert model == ModelA(id=1, a="x")
 
+    def test_from_result_with_prefix(self):
+        r = {"xxxid": 1, "xxxa": "x"}
+        model = ModelA.from_result(r, prefix="xxx")
+
+        assert model == ModelA(id=1, a="x")
+
     def test_from_results(self):
         results = [{"id": 1, "a": "x"}]
         models = ModelA.from_results(results)
+
+        assert models == [
+            ModelA(id=1, a="x"),
+        ]
+
+    def test_from_results_with_prefix(self):
+        results = [{"xxxid": 1, "xxxa": "x"}]
+        models = ModelA.from_results(results, prefix="xxx")
 
         assert models == [
             ModelA(id=1, a="x"),
@@ -57,6 +84,25 @@ class TestNestedModel:
     )
     def test_model_fields(self, model, expected_fields):
         assert model._pdb_model_fields() == expected_fields
+
+    def test_as_columns(self):
+        columns = ModelD.as_columns()
+
+        assert columns == [("id",), ("d",), ("a", "id"), ("a", "a"), ("b", "id"), ("b", "b")]
+
+    def test_as_typed_columns(self):
+        columns = ModelE.as_typed_columns()
+
+        assert columns == {
+            ("id",): int | float,
+            ("e",): str,
+            ("d", "id"): int,
+            ("d", "d"): str,
+            ("d", "a", "id"): int,
+            ("d", "a", "a"): str,
+            ("d", "b", "id"): int,
+            ("d", "b", "b"): str,
+        }
 
     def test_from_result(self):
         r = {"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": 3, "b__b": "z"}
