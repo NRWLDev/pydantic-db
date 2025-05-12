@@ -37,7 +37,6 @@ dependencies = [
 
 [project.urls]
 homepage = "https://github.com/NRWLDev/pydantic-db"
-documentation = "https://nrwldev.github.io/pydantic-db/"
 
 [project.optional-dependencies]
 dev = [
