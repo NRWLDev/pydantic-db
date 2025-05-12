@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.4 (released 2025-05-12)
+
+### Features and Improvements
+
+- Add support for optional nested models with a default primary field of id. [[e040522](https://github.com/NRWLDev/pydantic-db/commit/e040522f2c991dd95125b8eeb2c97e50166069c4)]
+
 ## v0.1.3 (released 2025-05-12)
 
 ### Bug fixes
