@@ -123,7 +123,7 @@ class User(Model):
 
 
 class Vehicle(Model):
-    _skip_prefix_field = {"owner": "primary_key"}
+    _skip_prefix_fields = {"owner": "primary_key"}
 
     id: int
     name: str
