@@ -70,7 +70,12 @@ class Model(pydantic.BaseModel):
         return cls(**data)
 
     @classmethod
-    def from_results(cls: type[typing.Self], results: list[DictConvertible], *, prefix: str = "") -> list[typing.Self]:
+    def from_results(
+        cls: type[typing.Self],
+        results: typing.Sequence[DictConvertible],
+        *,
+        prefix: str = "",
+    ) -> list[typing.Self]:
         return [cls.from_result(r, prefix=prefix) for r in results]
 
     @classmethod
