@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic_db import Model, NestedModel
+from pydantic_db import Model
 
 
 class ModelA(Model):
@@ -23,7 +23,7 @@ class ModelC(Model):
     updated: datetime
 
 
-class ModelD(NestedModel):
+class ModelD(Model):
     _skip_prefix_fields = {"b": "id"}
 
     id: int
@@ -32,7 +32,7 @@ class ModelD(NestedModel):
     b: ModelB | None
 
 
-class ModelE(NestedModel):
+class ModelE(Model):
     id: int | float  # union not containing model to trigger test branches
     e: str
     d: ModelD  # Nested NestedModel
