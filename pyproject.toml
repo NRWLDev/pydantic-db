@@ -43,6 +43,8 @@ dev = [
     # Tests
     "anys",
     "asyncpg >= 0.29.0",
+    "dsnparse>=0.2.1",
+    "mysql-connector-python>=9.3.0",
     "psycopg2>=2.9.10",
     "pytest-asyncio >= 0.23.5",
     "pytest >= 8.0.2",
@@ -98,6 +100,7 @@ addopts = [
 ]
 env = [
     "D:POSTGRES_DSN=postgres://unit:password@localhost:5435/unit",
+    "D:MYSQL_DSN=mysql://unit:password@localhost:3306/unit",
 ]
 
 [tool.coverage.report]

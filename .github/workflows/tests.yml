@@ -31,6 +31,21 @@ jobs:
           --health-timeout 5s
           --health-retries 3
 
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: unit
+          MYSQL_USER: unit
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 33306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.9
@@ -77,6 +92,10 @@ jobs:
         database: unit
         port: 5432
       id: postgres
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "8.0"
+      id: mysql
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.version }}
       uses: actions/setup-python@v5
@@ -92,5 +111,6 @@ jobs:
     - name: Test with pytest
       env:
         POSTGRES_DSN: postgres://unit:password@localhost:5432/unit
+        MYSQL_DSN: postgres://unit:password@localhost:5432/unit
       run: |
         uv run pytest
