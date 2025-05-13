@@ -8,7 +8,8 @@ can still provide a nice layer between raw query results and database models.
 
 So long as the database library you are using returns result objects that can
 be converted to a dictionary, pydantic-db will ineract cleanly with your
-results. See unittests for examples with sqlite, asyncpg and psycopg2.
+results. See unittests for examples with asyncpg, mysql-connector-python,
+psycopg2 and sqlite3.
 
 # Usage
 
@@ -71,6 +72,7 @@ For more complicated queries returning a nested object, models can be nested. To
 parse them automatically prefix query fields with `name__` format prefixes.
 
 Say we have a Vehicle table with a reference to an owner (User).
+
 ```python
 import sqlite3
 
