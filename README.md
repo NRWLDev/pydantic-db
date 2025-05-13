@@ -6,9 +6,9 @@ sql interactions over obfuscated ORM object built queries layers.
 For those who prefer libraries like pypika to build their queries, this library
 can still provide a nice layer between raw query results and database models.
 
-So long as the database framework you are using returns result objects that can
+So long as the database library you are using returns result objects that can
 be converted to a dictionary, pydantic-db will ineract cleanly with your
-results.
+results. See unittests for examples with sqlite, asyncpg and psycopg2.
 
 # Usage
 
