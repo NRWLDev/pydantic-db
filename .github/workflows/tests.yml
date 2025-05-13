@@ -16,6 +16,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: unit
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: unit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.9
@@ -30,6 +45,8 @@ jobs:
       run: uv sync --all-extras
 
     - name: Generate coverage report
+      env:
+        POSTGRES_DSN: postgres://unit:password@localhost:5432/unit
       run: |
         uv run pytest --cov=src/pydantic_db --cov-report=xml
 
@@ -53,6 +70,13 @@ jobs:
         version: ["3.9.x", "3.10.x", "3.11.x", "3.12.x"]
 
     steps:
+    - uses: ikalnytskyi/action-setup-postgres@v6
+      with:
+        username: unit
+        password: password
+        database: unit
+        port: 5432
+      id: postgres
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.version }}
       uses: actions/setup-python@v5
@@ -66,5 +90,7 @@ jobs:
       run: uv sync --all-extras
 
     - name: Test with pytest
+      env:
+        POSTGRES_DSN: postgres://unit:password@localhost:5432/unit
       run: |
         uv run pytest

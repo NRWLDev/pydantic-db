@@ -37,3 +37,19 @@ def tests(context):
 def tests_coverage(context):
     """Run pytest unit tests with coverage."""
     context.run("pytest --cov -x --cov-report=xml")
+
+
+@invoke.task
+def infra_test_start(context):
+    """Run local unittest infrastructure."""
+    context.run(
+        "docker compose -f unittest-compose.yml up -d",
+    )
+
+
+@invoke.task
+def infra_test_stop(context):
+    """Stop local unittest infrastructure."""
+    context.run(
+        "docker compose -f unittest-compose.yml down",
+    )
