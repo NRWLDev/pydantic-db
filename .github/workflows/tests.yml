@@ -96,6 +96,8 @@ jobs:
     - uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: "8.0"
+        user: unit
+        password: password
       id: mysql
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.version }}
