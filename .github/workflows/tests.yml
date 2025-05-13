@@ -62,6 +62,7 @@ jobs:
     - name: Generate coverage report
       env:
         POSTGRES_DSN: postgres://unit:password@localhost:5432/unit
+        MYSQL_DSN: postgres://unit:password@localhost:3306/unit
       run: |
         uv run pytest --cov=src/pydantic_db --cov-report=xml
 
@@ -111,6 +112,6 @@ jobs:
     - name: Test with pytest
       env:
         POSTGRES_DSN: postgres://unit:password@localhost:5432/unit
-        MYSQL_DSN: postgres://unit:password@localhost:5432/unit
+        MYSQL_DSN: postgres://unit:password@localhost:3306/unit
       run: |
         uv run pytest
