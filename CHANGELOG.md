@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.5 (released 2025-05-14)
+
+### Bug fixes
+
+- Update project description. [[969bc4d](https://github.com/NRWLDev/pydantic-db/commit/969bc4de51cc59d66fd56573a2d6e0ef07f44273)]
+
 ## v0.1.4 (released 2025-05-12)
 
 ### Features and Improvements
