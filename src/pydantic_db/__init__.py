@@ -103,7 +103,7 @@ class Model(pydantic.BaseModel):
         return columns
 
     @classmethod
-    def sortable_fields(cls, *, top_level: bool = True) -> set[str]:
+    def sortable_fields(cls, *, top_level: bool = True) -> list[str]:
         fields = set()
         model_fields = cls._pdb_model_fields()
         skipped_fields = cls._skip_sortable_fields or set()
@@ -125,4 +125,4 @@ class Model(pydantic.BaseModel):
             else:
                 fields.add(field)
 
-        return fields
+        return sorted(fields)
