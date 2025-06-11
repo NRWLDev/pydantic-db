@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.6 (released 2025-06-11)
+
+### Features and Improvements
+
+- Add support for listing sortable columns including nested fields. [[4c25959](https://github.com/NRWLDev/pydantic-db/commit/4c25959bad50914d926b55e04157b2dff5e8ee68)]
+
 ## v0.1.5 (released 2025-05-14)
 
 ### Bug fixes
