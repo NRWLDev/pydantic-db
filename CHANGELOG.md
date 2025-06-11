@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.7 (released 2025-06-11)
+
+### Bug fixes
+
+- Sort the return value from sortable_fields. [[1c20f31](https://github.com/NRWLDev/pydantic-db/commit/1c20f31178bc3370aa6acf7b027118a4857009ea)]
+
 ## v0.1.6 (released 2025-06-11)
 
 ### Features and Improvements
