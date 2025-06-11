@@ -16,6 +16,7 @@ except AttributeError:
 class Model(pydantic.BaseModel):
     _eq_excluded_fields: typing.ClassVar[set[str]] = set()
     _skip_prefix_fields: typing.ClassVar[dict[str, str] | None] = None
+    _skip_sortable_fields: typing.ClassVar[set[str] | None] = None
 
     @classmethod
     def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, tuple[Model, bool]]:
@@ -100,3 +101,28 @@ class Model(pydantic.BaseModel):
                 columns[(base_table, field)] = field_data.annotation
 
         return columns
+
+    @classmethod
+    def sortable_fields(cls, *, top_level: bool = True) -> set[str]:
+        fields = set()
+        model_fields = cls._pdb_model_fields()
+        skipped_fields = cls._skip_sortable_fields or set()
+
+        for field in cls.model_fields:
+            if field in skipped_fields:
+                continue
+
+            if field in model_fields:
+                if top_level:
+                    fields.add(field)
+
+                for column in model_fields[field][0].sortable_fields(top_level=False):
+                    sortable_field = f"{field}__{column}"
+                    if sortable_field in skipped_fields:
+                        continue
+
+                    fields.add(sortable_field)
+            else:
+                fields.add(field)
+
+        return fields

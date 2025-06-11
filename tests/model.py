@@ -33,6 +33,7 @@ class ModelD(Model):
 
 
 class ModelE(Model):
+    _skip_sortable_fields = {"d__a__id", "d__b__id"}
     id: int | float  # union not containing model to trigger test branches
     e: str
     d: ModelD  # Nested NestedModel

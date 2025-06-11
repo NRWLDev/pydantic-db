@@ -154,3 +154,13 @@ class TestNestedModel:
                 b=ModelB(id=3, b="z"),
             ),
         ]
+
+    @pytest.mark.parametrize(
+        ("model", "expected_fields"),
+        [
+            (ModelD, {"id", "d", "a", "a__id", "a__a", "b", "b__id", "b__b"}),
+            (ModelE, {"id", "e", "d", "d__id", "d__d", "d__a__a", "d__b__b"}),
+        ],
+    )
+    def test_sortable_fields(self, model, expected_fields):
+        assert model.sortable_fields() == expected_fields
