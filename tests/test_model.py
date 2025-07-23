@@ -220,6 +220,24 @@ class TestNestedModel:
             ),
         ]
 
+    def test_from_results_list_field_uniqueness_maintained(self):
+        results = [
+            {"id": 1, "models__id": 1, "models__a": "x"},
+            {"id": 1, "models__id": 2, "models__a": "y"},
+            {"id": 1, "models__id": 2, "models__a": "y"},
+        ]
+        models = ModelF.from_results(results)
+
+        assert models == [
+            ModelF(
+                id=1,
+                models=[
+                    ModelA(id=1, a="x"),
+                    ModelA(id=2, a="y"),
+                ],
+            ),
+        ]
+
     @pytest.mark.parametrize(
         ("model", "expected_fields"),
         [
