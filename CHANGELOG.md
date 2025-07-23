@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.8 (released 2025-07-23)
+
+### Bug fixes
+
+- Include base_table in nested fields when generating typed columns. [[3fac08c](https://github.com/NRWLDev/pydantic-db/commit/3fac08cf905e2e5fda46406c25a2db07323d23ff)]
+
 ## v0.1.7 (released 2025-06-11)
 
 ### Bug fixes
