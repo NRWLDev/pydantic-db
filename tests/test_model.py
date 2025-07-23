@@ -105,6 +105,20 @@ class TestNestedModel:
             ("d", "b", "b"): str,
         }
 
+    def test_as_typed_columns_with_base_table(self):
+        columns = ModelE.as_typed_columns("base_table")
+
+        assert columns == {
+            ("base_table", "id"): typing.Union[int, float],
+            ("base_table", "e"): str,
+            ("base_table", "d", "id"): int,
+            ("base_table", "d", "d"): str,
+            ("base_table", "d", "a", "id"): int,
+            ("base_table", "d", "a", "a"): str,
+            ("base_table", "d", "b", "id"): int,
+            ("base_table", "d", "b", "b"): str,
+        }
+
     def test_from_result(self):
         r = {"id": 1, "d": "x", "a__id": 2, "a__a": "y", "b__id": 3, "b__b": "z"}
         model = ModelD.from_result(r)

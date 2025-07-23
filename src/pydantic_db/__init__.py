@@ -93,7 +93,10 @@ class Model(pydantic.BaseModel):
         for field, field_data in cls.model_fields.items():
             if field in model_fields:
                 for column, annotation in model_fields[field][0].as_typed_columns().items():
-                    columns[(field, *column)] = annotation
+                    if base_table is None:
+                        columns[(field, *column)] = annotation
+                    else:
+                        columns[(base_table, field, *column)] = annotation
 
             elif base_table is None:
                 columns[(field,)] = field_data.annotation
