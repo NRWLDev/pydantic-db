@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.9 (released 2025-07-23)
+
+### Features and Improvements
+
+- Add support for joins that create duplicate rows to fetch nested list models. [[afa7ce9](https://github.com/NRWLDev/pydantic-db/commit/afa7ce94acfd115339282db8648962bbc364dbb2)]
+
 ## v0.1.8 (released 2025-07-23)
 
 ### Bug fixes
