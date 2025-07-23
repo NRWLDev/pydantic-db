@@ -37,3 +37,8 @@ class ModelE(Model):
     id: int | float  # union not containing model to trigger test branches
     e: str
     d: ModelD  # Nested NestedModel
+
+
+class ModelF(Model):
+    id: int
+    models: list[ModelA]

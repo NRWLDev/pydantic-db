@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from tests.model import ModelA, ModelB, ModelC, ModelD, ModelE
+from tests.model import ModelA, ModelB, ModelC, ModelD, ModelE, ModelF
 
 
 def test_unrelated_models_not_equal():
@@ -30,6 +30,15 @@ def test_equivalent_models_equal_ignored_field():
     m1 = ModelC(id=1, c="x", updated=datetime(2025, 1, 1, tzinfo=timezone.utc))
     m2 = ModelC(id=1, c="x", updated=datetime(2025, 1, 2, tzinfo=timezone.utc))
     assert m1 == m2
+
+
+def test_hash():
+    m1 = ModelA(id=1, a="y")
+    m2 = ModelA(id=1, a="x")
+    m3 = ModelA(id=2, a="x")
+
+    assert hash(m1) == hash(m2)
+    assert hash(m1) != hash(m3)
 
 
 class TestModel:
@@ -79,8 +88,9 @@ class TestNestedModel:
     @pytest.mark.parametrize(
         ("model", "expected_fields"),
         [
-            (ModelD, {"a": (ModelA, False), "b": (ModelB, True)}),
-            (ModelE, {"d": (ModelD, False)}),
+            (ModelD, {"a": (ModelA, False, False), "b": (ModelB, True, False)}),
+            (ModelE, {"d": (ModelD, False, False)}),
+            (ModelF, {"models": (ModelA, True, True)}),
         ],
     )
     def test_model_fields(self, model, expected_fields):
@@ -141,6 +151,30 @@ class TestNestedModel:
             b=None,
         )
 
+    def test_from_result_with_list_field(self):
+        r = {"id": 1, "models__id": 2, "models__a": "y"}
+        model = ModelF.from_result(r)
+
+        assert model == ModelF(
+            id=1,
+            models=[ModelA(id=2, a="y")],
+        )
+
+    @pytest.mark.parametrize(
+        ("result"),
+        [
+            {"id": 1, "models__id": None, "models__a": None},
+            {"id": 1},
+        ],
+    )
+    def test_from_result_with_list_field_missing_optional(self, result):
+        model = ModelF.from_result(result)
+
+        assert model == ModelF(
+            id=1,
+            models=[],
+        )
+
     def test_multi_layer_nesting(self):
         r = {"id": 0, "e": "w", "d__id": 1, "d__d": "x", "d__a__id": 2, "d__a__a": "y", "d__b__id": 3, "d__b__b": "z"}
         model = ModelE.from_result(r)
@@ -166,6 +200,23 @@ class TestNestedModel:
                 d="x",
                 a=ModelA(id=2, a="y"),
                 b=ModelB(id=3, b="z"),
+            ),
+        ]
+
+    def test_from_results_list_field(self):
+        results = [
+            {"id": 1, "models__id": 1, "models__a": "x"},
+            {"id": 1, "models__id": 2, "models__a": "y"},
+        ]
+        models = ModelF.from_results(results)
+
+        assert models == [
+            ModelF(
+                id=1,
+                models=[
+                    ModelA(id=1, a="x"),
+                    ModelA(id=2, a="y"),
+                ],
             ),
         ]
 
