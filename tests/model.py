@@ -42,3 +42,8 @@ class ModelE(Model):
 class ModelF(Model):
     id: int
     models: list[ModelA]
+
+
+class ModelG(Model):
+    id: int
+    models: list[ModelA] | None

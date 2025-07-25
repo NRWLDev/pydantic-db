@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from tests.model import ModelA, ModelB, ModelC, ModelD, ModelE, ModelF
+from pydantic_db import Model
+from tests.model import ModelA, ModelB, ModelC, ModelD, ModelE, ModelF, ModelG
 
 
 def test_unrelated_models_not_equal():
@@ -90,7 +91,8 @@ class TestNestedModel:
         [
             (ModelD, {"a": (ModelA, False, False), "b": (ModelB, True, False)}),
             (ModelE, {"d": (ModelD, False, False)}),
-            (ModelF, {"models": (ModelA, True, True)}),
+            (ModelF, {"models": (ModelA, False, True)}),
+            (ModelG, {"models": (ModelA, True, True)}),
         ],
     )
     def test_model_fields(self, model, expected_fields):
@@ -168,26 +170,11 @@ class TestNestedModel:
         ],
     )
     def test_from_result_with_list_field_missing_optional(self, result):
-        model = ModelF.from_result(result)
+        model = ModelG.from_result(result)
 
-        assert model == ModelF(
+        assert model == ModelG(
             id=1,
-            models=[],
-        )
-
-    def test_multi_layer_nesting(self):
-        r = {"id": 0, "e": "w", "d__id": 1, "d__d": "x", "d__a__id": 2, "d__a__a": "y", "d__b__id": 3, "d__b__b": "z"}
-        model = ModelE.from_result(r)
-
-        assert model == ModelE(
-            id=0,
-            e="w",
-            d=ModelD(
-                id=1,
-                d="x",
-                a=ModelA(id=2, a="y"),
-                b=ModelB(id=3, b="z"),
-            ),
+            models=None,
         )
 
     def test_from_results(self):
@@ -247,3 +234,95 @@ class TestNestedModel:
     )
     def test_sortable_fields(self, model, expected_fields):
         assert model.sortable_fields() == expected_fields
+
+
+class Basic(Model):
+    id: int
+
+
+class NestedListModel(Model):
+    id: int
+    children: list[Basic]
+
+
+class Complex(Model):
+    id: int
+    models: list[NestedListModel]
+
+
+class TestComplexScenarios:
+    def test_multi_layer_nesting(self):
+        r = {"id": 0, "e": "w", "d__id": 1, "d__d": "x", "d__a__id": 2, "d__a__a": "y", "d__b__id": 3, "d__b__b": "z"}
+        model = ModelE.from_result(r)
+
+        assert model == ModelE(
+            id=0,
+            e="w",
+            d=ModelD(
+                id=1,
+                d="x",
+                a=ModelA(id=2, a="y"),
+                b=ModelB(id=3, b="z"),
+            ),
+        )
+
+    def test_multi_layer_list_nesting(self):
+        results = [
+            {"id": 0, "models__id": 1, "models__children__id": None},
+            {"id": 0, "models__id": 2, "models__children__id": 1},
+            {"id": 0, "models__id": 2, "models__children__id": 2},
+            {"id": 1, "models__id": 3, "models__children__id": 3},
+            {"id": 1, "models__id": 3, "models__children__id": 3},
+            {"id": 1, "models__id": 4, "models__children__id": 4},
+            {"id": 2, "models__id": None, "models__children__id": None},
+        ]
+
+        assert Complex.from_results(results) == [
+            Complex(
+                id=0,
+                models=[NestedListModel(id=1, children=[]), NestedListModel(id=2, children=[Basic(id=1), Basic(id=2)])],
+            ),
+            Complex(
+                id=1,
+                models=[NestedListModel(id=3, children=[Basic(id=3)]), NestedListModel(id=4, children=[Basic(id=4)])],
+            ),
+            Complex(id=2, models=[]),
+        ]
+
+    def test_multi_layer_list_nesting_all(self):
+        results = [
+            {"id": 0, "models__id": 1, "models__children__id": None},
+            {"id": 0, "models__id": 2, "models__children__id": 1},
+            {"id": 0, "models__id": 2, "models__children__id": 2},
+            {"id": 1, "models__id": 3, "models__children__id": 3},
+            {"id": 1, "models__id": 3, "models__children__id": 3},
+            {"id": 1, "models__id": 4, "models__children__id": 4},
+            {"id": 2, "models__id": None, "models__children__id": None},
+        ]
+
+        assert Complex.all(results) == [
+            Complex(
+                id=0,
+                models=[NestedListModel(id=1, children=[]), NestedListModel(id=2, children=[Basic(id=1), Basic(id=2)])],
+            ),
+            Complex(
+                id=1,
+                models=[NestedListModel(id=3, children=[Basic(id=3)]), NestedListModel(id=4, children=[Basic(id=4)])],
+            ),
+            Complex(id=2, models=[]),
+        ]
+
+    def test_multi_layer_list_nesting_one(self):
+        results = [
+            {"id": 0, "models__id": 1, "models__children__id": None},
+            {"id": 0, "models__id": 2, "models__children__id": 1},
+            {"id": 0, "models__id": 2, "models__children__id": 2},
+        ]
+
+        assert Complex.one(results) == Complex(
+            id=0,
+            models=[
+                NestedListModel(id=1, children=[]),
+                NestedListModel(id=2, children=[Basic(id=1), Basic(id=2)]),
+            ],
+        )
