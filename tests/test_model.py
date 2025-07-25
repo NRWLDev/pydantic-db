@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import typing
 from datetime import datetime, timezone
 
 import pytest
@@ -107,7 +106,7 @@ class TestNestedModel:
         columns = ModelE.as_typed_columns()
 
         assert columns == {
-            ("id",): typing.Union[int, float],
+            ("id",): int | float,
             ("e",): str,
             ("d", "id"): int,
             ("d", "d"): str,
@@ -121,7 +120,7 @@ class TestNestedModel:
         columns = ModelE.as_typed_columns("base_table")
 
         assert columns == {
-            ("base_table", "id"): typing.Union[int, float],
+            ("base_table", "id"): int | float,
             ("base_table", "e"): str,
             ("base_table", "d", "id"): int,
             ("base_table", "d", "d"): str,

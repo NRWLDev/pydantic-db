@@ -6,12 +6,7 @@ from collections import defaultdict
 
 import pydantic
 
-DictConvertible = typing.Union[typing.Mapping[str, typing.Any], typing.Iterable[tuple[str, typing.Any]]]
-
-try:
-    UnionType = types.UnionType
-except AttributeError:
-    UnionType = typing._UnionGenericAlias  # noqa: SLF001
+DictConvertible = typing.Mapping[str, typing.Any] | typing.Iterable[tuple[str, typing.Any]]
 
 
 class ModelConfig(typing.NamedTuple):
@@ -71,7 +66,7 @@ class Model(pydantic.BaseModel):
         return ret
 
     @classmethod
-    def _process_union(cls, annotation: UnionType) -> ModelConfig | None:
+    def _process_union(cls, annotation: types.UnionType) -> ModelConfig | None:
         """Parse a union annotation to determine if it is a Model field."""
         ret = None
         args = typing.get_args(annotation)
@@ -101,7 +96,7 @@ class Model(pydantic.BaseModel):
             type_hints = typing.get_type_hints(cls)
             for field in cls.model_fields:
                 annotation = type_hints[field]
-                if type(annotation) is UnionType or type(annotation) is typing._UnionGenericAlias:  # noqa: SLF001
+                if type(annotation) is types.UnionType or type(annotation) is typing._UnionGenericAlias:  # noqa: SLF001
                     mc = cls._process_union(annotation)
                     if mc:
                         ret[field] = mc
