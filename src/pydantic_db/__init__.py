@@ -15,12 +15,20 @@ except AttributeError:
 
 
 class ModelConfig(typing.NamedTuple):
+    """Simple configuration to track details extracted from annotations."""
+
     model: Model
     optional: bool
     is_list: bool
 
 
 class Model(pydantic.BaseModel):
+    """Base model class.
+
+    Handles model equality checks, hashing (for uniqueness checks, and storing
+    in dict/sets), and processing database result(s).
+    """
+
     _eq_excluded_fields: typing.ClassVar[set[str]] = set()
     _skip_prefix_fields: typing.ClassVar[dict[str, str] | None] = None
     _skip_sortable_fields: typing.ClassVar[set[str] | None] = None
@@ -28,10 +36,20 @@ class Model(pydantic.BaseModel):
     _cached_model_fields: typing.ClassVar[dict[str, ModelConfig] | None] = None
 
     def __hash__(self) -> int:
+        """Generate a unique hash for a model.
+
+        By default will hash the `id` field of a model, to override this
+        behaviour define the unique set of fields to hash with the class var
+        `_hash_fields`.
+        """
         return hash("".join([str(getattr(self, field)) for field in self._hash_fields]))
 
     @classmethod
     def _dict_hash(cls, data: dict) -> int:
+        """Generate a unique hash for a dict representation of a model.
+
+        See __hash__ for details.
+        """
         return hash("".join([str(data[field]) for field in cls._hash_fields]))
 
     @classmethod
@@ -40,10 +58,12 @@ class Model(pydantic.BaseModel):
         annotation: typing.GenericAlias[list],
         args: list[typing.Any] | None = None,
     ) -> ModelConfig | None:
+        """Parse a list annotation to determine if it is a Model field."""
         ret = None
         args_ = typing.get_args(annotation)
         args = args or args_
         for arg in args_:
+            # Check the args for `list[...]` for a Model subclass.
             if isinstance(arg, type) and issubclass(arg, Model):
                 ret = ModelConfig(arg, optional=type(None) in args, is_list=True)
                 break
@@ -52,12 +72,16 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def _process_union(cls, annotation: UnionType) -> ModelConfig | None:
+        """Parse a union annotation to determine if it is a Model field."""
         ret = None
         args = typing.get_args(annotation)
         for arg in args:
+            # Check the args for `X | Y | ...` for a Model subclass.
             if isinstance(arg, type) and issubclass(arg, Model):
                 ret = ModelConfig(arg, optional=type(None) in args, is_list=False)
                 break
+
+            # For optional lists, process the internal type annotation
             if type(arg) is typing.GenericAlias and arg.__origin__ is list:
                 ret = cls._process_list(arg, args)
                 if ret:
@@ -67,6 +91,11 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def _pdb_model_fields(cls: type[typing.Self]) -> dict[str, ModelConfig]:
+        """Extract model fields along with configuration details.
+
+        Determine if a field refers to a Model, if it is optional and if it is
+        list based (in need of flattening to maintain top level uniqueness.
+        """
         if cls._cached_model_fields is None:
             ret = {}
             for k, f in cls.model_fields.items():
@@ -88,7 +117,12 @@ class Model(pydantic.BaseModel):
         return cls._cached_model_fields
 
     def __eq__(self, other: object) -> bool:
-        """Equality method to support testing."""
+        """Check model equality.
+
+        By default equality checks all fields of a model are equal. To override
+        this behaviour set the class var `_eq_excluded_fields` to define fields
+        that can be ignored when checking equality.
+        """
         if type(self) is type(other):
             return all(
                 getattr(self, field) == getattr(other, field)
@@ -99,6 +133,11 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def _parse_result(cls: type[typing.Self], result: DictConvertible, *, prefix: str = "") -> dict:
+        """Convert a database result representation to a dict.
+
+        Additionally parse any `model_prefix__*` fields to a `model_prefix`
+        dictionary containing child fields.
+        """
         # Strip prefixes away
         data = {k.replace(f"{prefix}", ""): v for k, v in dict(result).items() if k.startswith(prefix)}
 
@@ -118,6 +157,15 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def one(cls: type[typing.Self], data: DictConvertible | list[DictConvertible], *, prefix: str = "") -> typing.Self:
+        """Helper function to process a database result or result set into a single model instance.
+
+        When dealing with list based children, a result set will contain a copy
+        of the parent for every child. This results in a request for a single
+        object returning more then one row and can not be processed directly by
+        `Model.from_result`. `Model.one` will process a single result or a
+        result set to flatten any child lists into a single field and return
+        the final unique parent object.
+        """
         if isinstance(data, list):
             results = cls.from_results(data, prefix=prefix)
             result = results[0]
@@ -128,10 +176,16 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def all(cls: type[typing.Self], data: list[DictConvertible], *, prefix: str = "") -> typing.Self:
+        """Helper function to process a database result set into multiple model instances."""
         return cls.from_results(data, prefix=prefix)
 
     @classmethod
     def from_result(cls: type[typing.Self], result: DictConvertible, *, prefix: str = "") -> typing.Self:
+        """Process a single database result object into a Model instance.
+
+        If the model contains lists of child Models, use `Model.one(results)`,
+        to convert multiple rows to a single instance.
+        """
         data = cls._parse_result(result, prefix=prefix)
         model_fields = cls._pdb_model_fields()
         for model_prefix, config in model_fields.items():
@@ -143,7 +197,9 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def _flatten_data(cls: type[typing.Self], data: list[dict], list_fields: dict[str, bool]) -> list[dict]:
+        """Flatten child list fields and maintain uniqueness (and order) of parent objects."""
         child_data = defaultdict(lambda: defaultdict(list))
+        # Extract all child objects for each parent object
         for row in data:
             hash_ = cls._dict_hash(row)
             for list_field in list_fields:
@@ -151,13 +207,18 @@ class Model(pydantic.BaseModel):
                 if v and v not in child_data[hash_][list_field]:
                     child_data[hash_][list_field].append(v)
 
-        # Ensure uniqueness at top level
+        # Populate each unique top level object, with the extracted child fields.
         ret, seen = [], set()
         for row in data:
             hash_ = cls._dict_hash(row)
             if hash_ not in seen:
                 for list_field, optional in list_fields.items():
                     if list_field in child_data[hash_] or not optional:
+                        """
+                        If there is child data, or the field is not nullable,
+                        populate with the child data or the default list if the
+                        key does not exist in the underlying result set.
+                        """
                         row[list_field] = child_data[hash_][list_field]
                 ret.append(row)
             seen.add(hash_)
@@ -171,6 +232,11 @@ class Model(pydantic.BaseModel):
         *,
         prefix: str = "",
     ) -> list[typing.Self]:
+        """Convert a result set to a list of model instances.
+
+        If the model contains `list[Model]` fields, flatten the data to ensure
+        uniqueness and ordering of parent objects.
+        """
         model_fields = cls._pdb_model_fields()
         list_fields = {model_prefix: config.optional for model_prefix, config in model_fields.items() if config.is_list}
         data = [cls._parse_result(r, prefix=prefix) for r in results]
@@ -182,6 +248,7 @@ class Model(pydantic.BaseModel):
             for model_prefix, config in model_fields.items():
                 if row[model_prefix]:
                     if config.is_list:
+                        # If the flattened data is a list, pass to the child model to process (including nested models/lists)
                         row[model_prefix] = config.model.from_results(row[model_prefix])
                     else:
                         row[model_prefix] = config.model.from_result(row[model_prefix])
@@ -191,10 +258,12 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def as_columns(cls, base_table: str | None = None) -> list[tuple[str, ...]]:
+        """Extract nested field name tuples."""
         return list(cls.as_typed_columns(base_table=base_table).keys())
 
     @classmethod
     def as_typed_columns(cls, base_table: str | None = None) -> dict[tuple[str, ...], type[typing.Any] | None]:
+        """Extract nested field name tuples and the associated field type annotation."""
         columns: dict[tuple[str, ...], type[typing.Any] | None] = {}
         model_fields = cls._pdb_model_fields()
 
@@ -215,6 +284,13 @@ class Model(pydantic.BaseModel):
 
     @classmethod
     def sortable_fields(cls, *, top_level: bool = True) -> list[str]:
+        """Extract `__` separated string representations of all model fields.
+
+        Extract all fields and sub fields of nested models to validate user
+        provided sorting against available query fields.
+
+        To exclude fields override the class var `_skip_sortable_fields`.
+        """
         fields = set()
         model_fields = cls._pdb_model_fields()
         skipped_fields = cls._skip_sortable_fields or set()
