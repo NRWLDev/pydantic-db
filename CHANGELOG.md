@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.13 (released 2025-07-25)
+
+### Bug fixes
+
+- Handle list fields that have been json aggregated rather than built by raw select. [[f58b2b6](https://github.com/NRWLDev/pydantic-db/commit/f58b2b65e441a01f139ef3a9a9368a79e555862d)]
+
 ## v0.1.12 (released 2025-07-25)
 
 ### Features and Improvements

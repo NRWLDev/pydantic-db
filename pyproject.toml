@@ -1,6 +1,6 @@
 [project]
 name = "pydantic-db"
-version = "0.1.12"
+version = "0.1.13"
 description = "SQL library agnostic data model framework"
 readme = "README.md"
 authors = [
@@ -61,7 +61,7 @@ dev = [
 ]
 
 [tool.changelog_gen]
-current_version = "0.1.12"
+current_version = "0.1.13"
 reject_empty = true
 allowed_branches = [
     "main",
