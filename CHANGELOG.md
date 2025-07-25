@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.10 (released 2025-07-25)
+
+### Features and Improvements
+
+- Support flattening nested list model data to ensure uniqueness. [[b42bd14](https://github.com/NRWLDev/pydantic-db/commit/b42bd140c53e5a218154546bba67a8265c02f755)]
+
 ## v0.1.9 (released 2025-07-23)
 
 ### Features and Improvements
