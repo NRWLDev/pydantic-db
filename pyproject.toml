@@ -10,7 +10,7 @@ maintainers = [
     {name = "Daniel Edgecombe", email = "daniel@nrwl.co"},
 ]
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["pydantic", "database", "model", "agnostic"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -23,10 +23,10 @@ classifiers = [
     "Topic :: Software Development",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3",
 ]
 
@@ -118,7 +118,7 @@ branch = true
 source = ["src/pydantic_db"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 output-format = "concise"
 
