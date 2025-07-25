@@ -250,6 +250,25 @@ class Complex(Model):
     models: list[NestedListModel]
 
 
+# Support A.B.A references.
+# No need to support getting a parent, parents child(ren), childrens parent, chidrens parents child(ren) etc.
+
+
+class Root(Model):
+    id: int
+    a: CircularA
+
+
+class CircularA(Model):
+    id: int
+    b: CircularB
+
+
+class CircularB(Model):
+    id: int
+    a: CircularA
+
+
 class TestComplexScenarios:
     def test_multi_layer_nesting(self):
         r = {"id": 0, "e": "w", "d__id": 1, "d__d": "x", "d__a__id": 2, "d__a__a": "y", "d__b__id": 3, "d__b__b": "z"}
@@ -326,3 +345,19 @@ class TestComplexScenarios:
                 NestedListModel(id=2, children=[Basic(id=1), Basic(id=2)]),
             ],
         )
+
+    def test_circular_model_fields(self):
+        assert CircularA._pdb_model_fields() == {
+            "b": (CircularB, False, False),
+        }
+
+    def test_circular_typed_columns(self):
+        assert Root.as_typed_columns() == {
+            ("id",): int,
+            ("a", "id"): int,
+            ("a", "b", "id"): int,
+            ("a", "b", "a"): CircularA,
+        }
+
+    def test_circular_sortable_fields(self):
+        assert Root.sortable_fields() == ["a__b__a__id", "a__b__id", "a__id", "id"]

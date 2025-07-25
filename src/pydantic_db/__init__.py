@@ -98,17 +98,19 @@ class Model(pydantic.BaseModel):
         """
         if cls._cached_model_fields is None:
             ret = {}
-            for k, f in cls.model_fields.items():
-                if type(f.annotation) is UnionType:
-                    mc = cls._process_union(f.annotation)
+            type_hints = typing.get_type_hints(cls)
+            for field in cls.model_fields:
+                annotation = type_hints[field]
+                if type(annotation) is UnionType or type(annotation) is typing._UnionGenericAlias:  # noqa: SLF001
+                    mc = cls._process_union(annotation)
                     if mc:
-                        ret[k] = mc
-                elif type(f.annotation) is typing.GenericAlias and f.annotation.__origin__ is list:
-                    mc = cls._process_list(f.annotation)
+                        ret[field] = mc
+                elif type(annotation) is typing.GenericAlias and annotation.__origin__ is list:
+                    mc = cls._process_list(annotation)
                     if mc:
-                        ret[k] = mc
-                elif isinstance(f.annotation, type) and issubclass(f.annotation, Model):
-                    ret[k] = ModelConfig(f.annotation, optional=False, is_list=False)
+                        ret[field] = mc
+                elif isinstance(annotation, type) and issubclass(annotation, Model):
+                    ret[field] = ModelConfig(annotation, optional=False, is_list=False)
 
             cls._cached_model_fields = ret
 
@@ -260,14 +262,21 @@ class Model(pydantic.BaseModel):
         return list(cls.as_typed_columns(base_table=base_table).keys())
 
     @classmethod
-    def as_typed_columns(cls, base_table: str | None = None) -> dict[tuple[str, ...], type[typing.Any] | None]:
+    def as_typed_columns(
+        cls,
+        base_table: str | None = None,
+        seen: set[type[Model]] | None = None,
+    ) -> dict[tuple[str, ...], type[typing.Any] | None]:
         """Extract nested field name tuples and the associated field type annotation."""
+        # Prevent nested circular dependencies upon seeing an ancestor
+        seen = seen or set()
+        seen.add(cls)
         columns: dict[tuple[str, ...], type[typing.Any] | None] = {}
         model_fields = cls._pdb_model_fields()
 
         for field, field_data in cls.model_fields.items():
-            if field in model_fields:
-                for column, annotation in model_fields[field].model.as_typed_columns().items():
+            if field in model_fields and model_fields[field].model not in seen:
+                for column, annotation in model_fields[field].model.as_typed_columns(seen=seen).items():
                     if base_table is None:
                         columns[(field, *column)] = annotation
                     else:
@@ -281,7 +290,7 @@ class Model(pydantic.BaseModel):
         return columns
 
     @classmethod
-    def sortable_fields(cls, *, top_level: bool = True) -> list[str]:
+    def sortable_fields(cls, *, seen: set[type[Model]] | None = None, recurse: bool = True) -> list[str]:
         """Extract `__` separated string representations of all model fields.
 
         Extract all fields and sub fields of nested models to validate user
@@ -289,7 +298,10 @@ class Model(pydantic.BaseModel):
 
         To exclude fields override the class var `_skip_sortable_fields`.
         """
+        # Prevent nested circular dependencies upon seeing an ancestor
         fields = set()
+        seen = seen or set()
+        seen.add(cls)
         model_fields = cls._pdb_model_fields()
         skipped_fields = cls._skip_sortable_fields or set()
 
@@ -297,17 +309,17 @@ class Model(pydantic.BaseModel):
             if field in skipped_fields:
                 continue
 
-            if field in model_fields:
-                if top_level:
-                    fields.add(field)
-
-                for column in model_fields[field].model.sortable_fields(top_level=False):
+            if field not in model_fields:
+                fields.add(field)
+            elif field in model_fields and recurse:
+                for column in model_fields[field].model.sortable_fields(
+                    seen=seen,
+                    recurse=model_fields[field].model not in seen,
+                ):
                     sortable_field = f"{field}__{column}"
                     if sortable_field in skipped_fields:
                         continue
 
                     fields.add(sortable_field)
-            else:
-                fields.add(field)
 
         return sorted(fields)
