@@ -103,12 +103,10 @@ class Model(pydantic.BaseModel):
                     mc = cls._process_union(f.annotation)
                     if mc:
                         ret[k] = mc
-                        break
                 elif type(f.annotation) is typing.GenericAlias and f.annotation.__origin__ is list:
                     mc = cls._process_list(f.annotation)
                     if mc:
                         ret[k] = mc
-                        break
                 elif isinstance(f.annotation, type) and issubclass(f.annotation, Model):
                     ret[k] = ModelConfig(f.annotation, optional=False, is_list=False)
 

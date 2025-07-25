@@ -28,7 +28,7 @@ class ModelD(Model):
 
     id: int
     d: str
-    a: ModelA
+    a: ModelA | None
     b: ModelB | None
 
 

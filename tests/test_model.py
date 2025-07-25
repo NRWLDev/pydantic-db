@@ -89,7 +89,7 @@ class TestNestedModel:
     @pytest.mark.parametrize(
         ("model", "expected_fields"),
         [
-            (ModelD, {"a": (ModelA, False, False), "b": (ModelB, True, False)}),
+            (ModelD, {"a": (ModelA, True, False), "b": (ModelB, True, False)}),
             (ModelE, {"d": (ModelD, False, False)}),
             (ModelF, {"models": (ModelA, False, True)}),
             (ModelG, {"models": (ModelA, True, True)}),
