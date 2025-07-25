@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.12 (released 2025-07-25)
+
+### Features and Improvements
+
+- Handle ForwardRefs and circular model references. [[57eadb5](https://github.com/NRWLDev/pydantic-db/commit/57eadb5db51c2c8d78cf8fc532315ea3a6ad75a2)]
+
 ## v0.1.11 (released 2025-07-25)
 
 ### Bug fixes
