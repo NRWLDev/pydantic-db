@@ -228,8 +228,8 @@ class TestNestedModel:
     @pytest.mark.parametrize(
         ("model", "expected_fields"),
         [
-            (ModelD, sorted(["id", "d", "a", "a__id", "a__a", "b", "b__id", "b__b"])),
-            (ModelE, sorted(["id", "e", "d", "d__id", "d__d", "d__a__a", "d__b__b"])),
+            (ModelD, sorted(["id", "d", "a__id", "a__a", "b__id", "b__b"])),
+            (ModelE, sorted(["id", "e", "d__id", "d__d", "d__a__a", "d__b__b"])),
         ],
     )
     def test_sortable_fields(self, model, expected_fields):
@@ -327,6 +327,33 @@ class TestComplexScenarios:
             Complex(
                 id=1,
                 models=[NestedListModel(id=3, children=[Basic(id=3)]), NestedListModel(id=4, children=[Basic(id=4)])],
+            ),
+            Complex(id=2, models=[]),
+        ]
+
+    def test_multi_layer_list_nesting_json_agg(self):
+        results = [
+            {"id": 0, "models__id": 1, "models__children": []},
+            {"id": 0, "models__id": 2, "models__children": [{"id": 1}, {"id": 2}]},
+            {"id": 1, "models__id": 3, "models__children": [{"id": 3}, {"id": 3}]},
+            {"id": 1, "models__id": 4, "models__children": [{"id": 4}]},
+            {"id": 2, "models__id": None, "models__children__id": None},
+        ]
+
+        assert Complex.all(results) == [
+            Complex(
+                id=0,
+                models=[NestedListModel(id=1, children=[]), NestedListModel(id=2, children=[Basic(id=1), Basic(id=2)])],
+            ),
+            Complex(
+                id=1,
+                models=[
+                    NestedListModel(
+                        id=3,
+                        children=[Basic(id=3), Basic(id=3)],
+                    ),  # uniqueness is up to the builder of the jsonagg.
+                    NestedListModel(id=4, children=[Basic(id=4)]),
+                ],
             ),
             Complex(id=2, models=[]),
         ]

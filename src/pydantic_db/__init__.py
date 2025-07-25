@@ -146,6 +146,8 @@ class Model(pydantic.BaseModel):
 
         for model_prefix, config in model_fields.items():
             skip_field = skip_prefix_map.get(model_prefix, "id")
+            if data.get(model_prefix):
+                continue
             if (config.optional or config.is_list) and data.get(f"{model_prefix}__{skip_field}") is None:
                 data[model_prefix] = None
             else:
@@ -204,7 +206,9 @@ class Model(pydantic.BaseModel):
             hash_ = cls._dict_hash(row)
             for list_field in list_fields:
                 v = row.get(list_field)
-                if v and v not in child_data[hash_][list_field]:
+                if isinstance(v, list):
+                    child_data[hash_][list_field] = v
+                elif v and v not in child_data[hash_][list_field]:
                     child_data[hash_][list_field].append(v)
 
         # Populate each unique top level object, with the extracted child fields.
