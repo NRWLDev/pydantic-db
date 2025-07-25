@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.11 (released 2025-07-25)
+
+### Bug fixes
+
+- Remove incorrect breaks in model parsing that prevented multiple fields processing if a union or list was detected. [[ef29561](https://github.com/NRWLDev/pydantic-db/commit/ef29561372a688cb64c85b480d67bd5991f9be29)]
+
 ## v0.1.10 (released 2025-07-25)
 
 ### Features and Improvements
