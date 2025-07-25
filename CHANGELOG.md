@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0 (released 2025-07-25)
+
+### Features and Improvements
+
+- **Breaking** Drop support for python 3.9 prior to End of Life. [[a90f2fe](https://github.com/NRWLDev/pydantic-db/commit/a90f2fe4ef047909842011b755992a0efef83a47)]
+
 ## v0.1.13 (released 2025-07-25)
 
 ### Bug fixes
