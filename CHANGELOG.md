@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1 (released 2025-07-30)
+
+### Bug fixes
+
+- Handle aliased fields when generating column lists. [[d1e0e85](https://github.com/NRWLDev/pydantic-db/commit/d1e0e856b3cad3a9e50cec120adfc82040403b4d)]
+
 ## v0.2.0 (released 2025-07-25)
 
 ### Features and Improvements
