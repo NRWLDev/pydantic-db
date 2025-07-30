@@ -274,17 +274,18 @@ class Model(pydantic.BaseModel):
         model_fields = cls._pdb_model_fields()
 
         for field, field_data in cls.model_fields.items():
+            field_name = field_data.alias or field
             if field in model_fields and model_fields[field].model not in seen:
                 for column, annotation in model_fields[field].model.as_typed_columns(seen=seen).items():
                     if base_table is None:
-                        columns[(field, *column)] = annotation
+                        columns[(field_name, *column)] = annotation
                     else:
-                        columns[(base_table, field, *column)] = annotation
+                        columns[(base_table, field_name, *column)] = annotation
 
             elif base_table is None:
-                columns[(field,)] = field_data.annotation
+                columns[(field_name,)] = field_data.annotation
             else:
-                columns[(base_table, field)] = field_data.annotation
+                columns[(base_table, field_name)] = field_data.annotation
 
         return columns
 
@@ -304,18 +305,19 @@ class Model(pydantic.BaseModel):
         model_fields = cls._pdb_model_fields()
         skipped_fields = cls._skip_sortable_fields or set()
 
-        for field in cls.model_fields:
+        for field, field_data in cls.model_fields.items():
+            field_name = field_data.alias or field
             if field in skipped_fields:
                 continue
 
             if field not in model_fields:
-                fields.add(field)
+                fields.add(field_name)
             elif field in model_fields and recurse:
                 for column in model_fields[field].model.sortable_fields(
                     seen=seen,
                     recurse=model_fields[field].model not in seen,
                 ):
-                    sortable_field = f"{field}__{column}"
+                    sortable_field = f"{field_name}__{column}"
                     if sortable_field in skipped_fields:
                         continue
 

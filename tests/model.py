@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from pydantic import Field
+
 from pydantic_db import Model
 
 
@@ -34,7 +36,8 @@ class ModelD(Model):
 
 class ModelE(Model):
     _skip_sortable_fields = {"d__a__id", "d__b__id"}
-    id: int | float  # union not containing model to trigger test branches
+    # union not containing model to trigger test branches
+    id_: int | float = Field(..., alias="id")
     e: str
     d: ModelD  # Nested NestedModel
 
