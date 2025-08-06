@@ -91,7 +91,7 @@ class TestNestedModel:
             (ModelD, {"a": (ModelA, True, False), "b": (ModelB, True, False)}),
             (ModelE, {"d": (ModelD, False, False)}),
             (ModelF, {"models": (ModelA, False, True)}),
-            (ModelG, {"models": (ModelA, True, True)}),
+            (ModelG, {"models": (ModelA, True, True), "models_generic": (ModelA, True, True)}),
         ],
     )
     def test_model_fields(self, model, expected_fields):

@@ -96,7 +96,7 @@ class Model(pydantic.BaseModel):
             type_hints = typing.get_type_hints(cls)
             for field in cls.model_fields:
                 annotation = type_hints[field]
-                if type(annotation) is types.UnionType or type(annotation) is typing._UnionGenericAlias:  # noqa: SLF001
+                if type(annotation) is types.UnionType or typing.get_origin(annotation) is typing.Union:
                     mc = cls._process_union(annotation)
                     if mc:
                         ret[field] = mc

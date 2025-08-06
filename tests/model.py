@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from datetime import datetime
 
 from pydantic import Field
@@ -50,3 +51,4 @@ class ModelF(Model):
 class ModelG(Model):
     id: int
     models: list[ModelA] | None
+    models_generic: typing.Union[list[ModelA], None] = None  # noqa: UP007
