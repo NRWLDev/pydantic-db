@@ -32,4 +32,4 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        uv run pre-commit run --all-files
+        uv run prek run --all-files

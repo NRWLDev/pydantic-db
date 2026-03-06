@@ -54,7 +54,8 @@ dev = [
 
     # Style
     "ruff >= 0.6.4",
-    "pre-commit >= 3.0.2",
+    "prek>=0.3.4",
+    "ty >= 0.0.17",
 
     # release
     "changelog-gen >= 0.12",

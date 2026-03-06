@@ -18,7 +18,8 @@ def install(context):
 def install_dev(context):
     """Install development requirements."""
     context.run("uv sync --all-extras")
-    context.run("uv run pre-commit install")
+    context.run("uv run prek install")
+    context.run("uv run prek install-hooks")
 
 
 @invoke.task
