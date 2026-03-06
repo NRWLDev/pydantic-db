@@ -51,7 +51,7 @@ class Model(pydantic.BaseModel):
     def _process_list(
         cls,
         annotation: typing.GenericAlias[list],
-        args: list[typing.Any] | None = None,
+        args: tuple[typing.Any] | None = None,
     ) -> ModelConfig | None:
         """Parse a list annotation to determine if it is a Model field."""
         ret = None
